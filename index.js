@@ -254,7 +254,7 @@ app.post('/api/game-name', async (req, res) => {
   const { name, adminKey } = req.body;
 
   if (adminKey !== (process.env.ADMIN_KEY || 'admin2024')) {
-    return res.status(403).json({ error: 'Unauthorized.' });
+    return res.status(403).json({ error: 'po da sunni' });
   }
 
   const settings = await GameSettings.findOneAndUpdate(
