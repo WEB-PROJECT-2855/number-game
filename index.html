@@ -1,0 +1,1863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title id="pageTitle">DUAL DIGIT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════════════════ */
+:root {
+  --bg: #050810;
+  --bg2: #0a1020;
+  --panel: #0d1628;
+  --panel2: #111e35;
+  --border: #1a3a6e;
+  --border2: #243d6b;
+  --accent: #00d4ff;
+  --accent2: #0099cc;
+  --gold: #f0a500;
+  --gold2: #d4890a;
+  --red: #ff3b5c;
+  --green: #00ff9f;
+  --purple: #8b5cf6;
+  --text: #c8deff;
+  --text2: #7a9cc8;
+  --text3: #3a5a8a;
+  --glow: 0 0 20px rgba(0,212,255,0.4);
+  --glow2: 0 0 40px rgba(0,212,255,0.2);
+  --font-display: 'Orbitron', monospace;
+  --font-body: 'Rajdhani', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --r: 8px;
+  --r2: 12px;
+  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.5;
+  overflow:hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   BACKGROUND GRID
+═══════════════════════════════════════════════ */
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;z-index:0;
+}
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(0,212,255,0.06) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* ═══════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════ */
+#app{
+  position:relative;z-index:1;
+  height:100vh;
+  display:flex;flex-direction:column;
+  overflow:hidden;
+}
+
+/* ═══════════════════════════════════════════════
+   SCREENS
+═══════════════════════════════════════════════ */
+.screen{
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  height:100vh;
+  overflow-y:auto;
+  padding:20px 16px 40px;
+  animation:fadeIn 0.3s ease;
+}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════════════
+   GAME TITLE COMPONENT
+═══════════════════════════════════════════════ */
+.game-title{
+  text-align:center;
+  margin-bottom:8px;
+}
+.game-title .label{
+  font-family:var(--font-mono);
+  font-size:10px;
+  letter-spacing:4px;
+  color:var(--accent2);
+  text-transform:uppercase;
+  display:block;
+  margin-bottom:4px;
+}
+.game-title .name{
+  font-family:var(--font-display);
+  font-size:clamp(28px,8vw,56px);
+  font-weight:900;
+  letter-spacing:4px;
+  text-transform:uppercase;
+  background:linear-gradient(135deg,var(--accent) 0%,#ffffff 50%,var(--gold) 100%);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  filter:drop-shadow(0 0 20px rgba(0,212,255,0.5));
+  line-height:1;
+}
+.game-title .tagline{
+  font-size:12px;
+  letter-spacing:3px;
+  color:var(--text3);
+  text-transform:uppercase;
+  margin-top:6px;
+}
+
+/* ═══════════════════════════════════════════════
+   PANELS & CARDS
+═══════════════════════════════════════════════ */
+.card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:24px;
+  width:100%;
+  max-width:440px;
+  position:relative;
+  overflow:hidden;
+}
+.card::before{
+  content:'';
+  position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+}
+.card-title{
+  font-family:var(--font-display);
+  font-size:14px;
+  letter-spacing:2px;
+  color:var(--accent);
+  text-transform:uppercase;
+  margin-bottom:20px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════
+   FORM ELEMENTS
+═══════════════════════════════════════════════ */
+.field{margin-bottom:16px}
+.field label{
+  display:block;
+  font-size:11px;
+  letter-spacing:2px;
+  color:var(--text2);
+  text-transform:uppercase;
+  margin-bottom:6px;
+}
+.field input,.field select{
+  width:100%;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  color:var(--text);
+  font-family:var(--font-mono);
+  font-size:15px;
+  padding:12px 14px;
+  outline:none;
+  transition:border-color var(--transition),box-shadow var(--transition);
+  appearance:none;
+}
+.field input:focus,.field select:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 2px rgba(0,212,255,0.15);
+}
+.field input::placeholder{color:var(--text3)}
+.field select option{background:var(--bg2)}
+
+/* ═══════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:var(--font-display);
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  padding:14px 24px;
+  border:none;border-radius:var(--r);
+  cursor:pointer;
+  transition:all var(--transition);
+  width:100%;
+  position:relative;overflow:hidden;
+}
+.btn::after{
+  content:'';
+  position:absolute;inset:0;
+  background:linear-gradient(rgba(255,255,255,0.1),transparent);
+  opacity:0;
+  transition:opacity var(--transition);
+}
+.btn:hover::after{opacity:1}
+.btn:active{transform:scale(0.97)}
+.btn-primary{background:linear-gradient(135deg,#0077aa,#00aadd);color:#fff;box-shadow:0 4px 20px rgba(0,170,221,0.3)}
+.btn-primary:hover{box-shadow:0 4px 30px rgba(0,170,221,0.5)}
+.btn-accent{background:linear-gradient(135deg,#004d7a,#007aaa);color:var(--accent);border:1px solid var(--accent2)}
+.btn-gold{background:linear-gradient(135deg,#7a4800,#c47a00);color:var(--gold);border:1px solid var(--gold2)}
+.btn-danger{background:linear-gradient(135deg,#7a0022,#bb0033);color:var(--red);border:1px solid #660020}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent)}
+.btn-sm{padding:8px 16px;font-size:10px}
+.btn-icon{width:auto;padding:10px}
+.btn:disabled{opacity:0.4;cursor:not-allowed}
+
+/* ═══════════════════════════════════════════════
+   TOP BAR
+═══════════════════════════════════════════════ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;
+  background:rgba(10,16,32,0.8);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);
+  flex-shrink:0;
+  position:relative;z-index:10;
+}
+.topbar-title{
+  font-family:var(--font-display);
+  font-size:14px;
+  font-weight:900;
+  letter-spacing:3px;
+  background:linear-gradient(135deg,var(--accent),#fff);
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.topbar-user{display:flex;align-items:center;gap:8px}
+.user-badge{
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--text2);
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:4px 10px;
+}
+.online-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 6px var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+/* ═══════════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════════ */
+#notifications{
+  position:fixed;top:60px;right:12px;z-index:1000;
+  display:flex;flex-direction:column;gap:8px;
+  max-width:300px;
+}
+.notif{
+  padding:12px 16px;
+  border-radius:var(--r);
+  font-size:13px;
+  animation:slideIn 0.3s ease;
+  border-left:3px solid;
+  backdrop-filter:blur(10px);
+}
+.notif.info{background:rgba(0,100,160,0.9);border-color:var(--accent);color:#fff}
+.notif.success{background:rgba(0,100,60,0.9);border-color:var(--green);color:#fff}
+.notif.error{background:rgba(120,0,30,0.9);border-color:var(--red);color:#fff}
+.notif.invite{background:rgba(60,20,100,0.95);border-color:var(--purple);color:#fff;cursor:pointer}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.notif .notif-title{font-family:var(--font-display);font-size:10px;letter-spacing:1px;opacity:0.7;margin-bottom:2px}
+.notif .notif-actions{display:flex;gap:8px;margin-top:8px}
+.notif .notif-btn{
+  padding:4px 12px;border-radius:4px;border:none;cursor:pointer;
+  font-family:var(--font-body);font-size:12px;font-weight:600;
+}
+.notif .notif-btn.accept{background:var(--purple);color:#fff}
+.notif .notif-btn.decline{background:rgba(255,255,255,0.1);color:var(--text2)}
+
+/* ═══════════════════════════════════════════════
+   DIVIDER
+═══════════════════════════════════════════════ */
+.divider{display:flex;align-items:center;gap:12px;margin:16px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.divider span{font-size:11px;color:var(--text3);letter-spacing:2px;text-transform:uppercase}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: LOGIN
+═══════════════════════════════════════════════ */
+#screen-login{
+  justify-content:center;
+  background:radial-gradient(ellipse at 50% 40%, rgba(0,100,180,0.08) 0%, transparent 70%);
+}
+.hero{text-align:center;margin-bottom:32px}
+.hero-decoration{
+  width:80px;height:3px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  margin:12px auto;
+}
+.tab-row{display:flex;border-radius:var(--r);overflow:hidden;border:1px solid var(--border);margin-bottom:20px}
+.tab-btn{
+  flex:1;padding:10px;
+  background:transparent;
+  border:none;color:var(--text2);
+  font-family:var(--font-display);font-size:10px;letter-spacing:1px;
+  cursor:pointer;transition:all var(--transition);
+}
+.tab-btn.active{background:var(--accent2);color:#fff}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: HOME
+═══════════════════════════════════════════════ */
+#screen-home{justify-content:flex-start;padding-top:0}
+.home-content{width:100%;max-width:440px;padding:20px 0 40px}
+.home-hero{text-align:center;padding:24px 0 20px}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.menu-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:20px 16px;
+  cursor:pointer;
+  text-align:center;
+  transition:all var(--transition);
+  position:relative;overflow:hidden;
+}
+.menu-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,0.05),transparent);opacity:0;transition:opacity var(--transition)}
+.menu-card:hover::before{opacity:1}
+.menu-card:hover{border-color:var(--accent);transform:translateY(-2px)}
+.menu-card:active{transform:scale(0.97)}
+.menu-card .icon{font-size:28px;margin-bottom:8px;display:block}
+.menu-card .label{font-family:var(--font-display);font-size:11px;letter-spacing:1px;color:var(--text)}
+.menu-card .sublabel{font-size:11px;color:var(--text3);margin-top:2px}
+.stat-bar{
+  display:flex;justify-content:center;gap:24px;
+  padding:12px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  margin-bottom:16px;
+}
+.stat-item{text-align:center}
+.stat-val{font-family:var(--font-display);font-size:16px;color:var(--accent)}
+.stat-lbl{font-size:10px;color:var(--text3);letter-spacing:1px}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: CREATE ROOM
+═══════════════════════════════════════════════ */
+.back-btn{
+  display:flex;align-items:center;gap:6px;
+  color:var(--text2);font-size:12px;letter-spacing:1px;
+  background:none;border:none;cursor:pointer;
+  margin-bottom:16px;
+  font-family:var(--font-display);
+  transition:color var(--transition);
+}
+.back-btn:hover{color:var(--accent)}
+
+.digit-select{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:8px}
+.digit-option{
+  background:var(--bg2);
+  border:2px solid var(--border);
+  border-radius:var(--r);
+  padding:12px 4px;
+  text-align:center;
+  cursor:pointer;
+  transition:all var(--transition);
+  font-family:var(--font-display);
+  font-size:16px;
+  font-weight:900;
+  color:var(--text2);
+}
+.digit-option:hover{border-color:var(--accent2);color:var(--accent)}
+.digit-option.selected{
+  border-color:var(--accent);
+  color:var(--accent);
+  background:rgba(0,212,255,0.1);
+  box-shadow:0 0 12px rgba(0,212,255,0.2);
+}
+.digit-label{font-size:9px;color:var(--text3);margin-top:3px;letter-spacing:1px}
+
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:12px 14px;
+  margin-top:12px;
+}
+.toggle-info .toggle-title{font-size:13px;font-weight:600;color:var(--text)}
+.toggle-info .toggle-desc{font-size:11px;color:var(--text3);margin-top:2px}
+.toggle{
+  position:relative;width:44px;height:24px;flex-shrink:0;
+}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;
+  background:var(--border);border-radius:24px;
+  cursor:pointer;transition:all var(--transition);
+}
+.toggle-slider::before{
+  content:'';position:absolute;
+  width:18px;height:18px;border-radius:50%;
+  left:3px;top:3px;
+  background:#fff;
+  transition:transform var(--transition);
+}
+.toggle input:checked + .toggle-slider{background:var(--accent2)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(20px)}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: FRIENDS
+═══════════════════════════════════════════════ */
+.search-row{display:flex;gap:8px}
+.search-row input{flex:1}
+.friend-list{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.friend-item{
+  display:flex;align-items:center;gap:12px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:10px 12px;
+}
+.friend-avatar{
+  width:36px;height:36px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent2),var(--purple));
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:14px;font-weight:900;
+  color:#fff;flex-shrink:0;
+}
+.friend-info{flex:1;min-width:0}
+.friend-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.friend-status{font-size:11px}
+.friend-status.online{color:var(--green)}
+.friend-status.offline{color:var(--text3)}
+.friend-actions{display:flex;gap:6px}
+
+.req-item{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(139,92,246,0.1);
+  border:1px solid rgba(139,92,246,0.3);
+  border-radius:var(--r);
+  padding:10px 12px;
+}
+.req-item .req-info{flex:1}
+.req-item .req-name{font-weight:600;font-size:14px}
+.req-item .req-sub{font-size:11px;color:var(--text3)}
+.req-actions{display:flex;gap:6px}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: LOBBY
+═══════════════════════════════════════════════ */
+.lobby-status{
+  text-align:center;
+  padding:24px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  margin-bottom:16px;
+}
+.lobby-room-id{
+  font-family:var(--font-display);
+  font-size:28px;
+  font-weight:900;
+  color:var(--gold);
+  letter-spacing:4px;
+}
+.lobby-waiting{
+  margin-top:12px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  color:var(--text2);font-size:13px;
+}
+.dots span{
+  display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--accent);margin:0 2px;
+  animation:dot 1.4s infinite;
+}
+.dots span:nth-child(2){animation-delay:0.2s}
+.dots span:nth-child(3){animation-delay:0.4s}
+@keyframes dot{0%,80%,100%{opacity:0.2;transform:scale(0.8)}40%{opacity:1;transform:scale(1)}}
+
+.player-slots{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.player-slot{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:16px;
+  text-align:center;
+}
+.player-slot.filled{border-color:var(--green)}
+.player-slot .slot-role{font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase}
+.player-slot .slot-name{font-family:var(--font-display);font-size:14px;margin-top:4px;color:var(--text)}
+.player-slot .slot-name.empty{color:var(--text3)}
+.player-slot .slot-icon{font-size:24px;margin-bottom:6px}
+
+.room-info-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  margin-bottom:16px;
+}
+.room-info-item{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:10px 12px;
+  text-align:center;
+}
+.room-info-item .lbl{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase}
+.room-info-item .val{font-family:var(--font-display);font-size:16px;color:var(--accent);margin-top:2px}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: SECRET ENTRY
+═══════════════════════════════════════════════ */
+.secret-input-wrap{
+  position:relative;
+  display:flex;align-items:center;
+}
+.secret-input-wrap input{padding-right:44px}
+.secret-input-wrap .toggle-vis{
+  position:absolute;right:12px;
+  background:none;border:none;
+  color:var(--text3);cursor:pointer;font-size:16px;
+  transition:color var(--transition);
+}
+.secret-input-wrap .toggle-vis:hover{color:var(--accent)}
+
+.digit-slots{display:flex;gap:8px;justify-content:center;margin:16px 0}
+.digit-slot{
+  width:44px;height:52px;
+  background:var(--bg2);
+  border:2px solid var(--border);
+  border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-size:20px;font-weight:900;
+  color:var(--accent);
+  transition:all var(--transition);
+}
+.digit-slot.filled{border-color:var(--accent);box-shadow:0 0 8px rgba(0,212,255,0.2)}
+
+.secret-hint{
+  background:rgba(0,212,255,0.05);
+  border:1px solid rgba(0,212,255,0.15);
+  border-radius:var(--r);
+  padding:10px 14px;
+  font-size:12px;
+  color:var(--text2);
+  margin-top:12px;
+  line-height:1.6;
+}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: GAME
+═══════════════════════════════════════════════ */
+#screen-game{padding:0;justify-content:flex-start}
+.game-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;
+  background:rgba(5,8,16,0.95);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:10;
+  gap:8px;
+}
+.game-topbar .g-title{
+  font-family:var(--font-display);font-size:11px;
+  font-weight:900;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--accent),#fff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+
+.timers{display:flex;gap:8px;align-items:center}
+.timer-box{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:4px 10px;
+  text-align:center;min-width:56px;
+}
+.timer-box .t-lbl{font-size:8px;letter-spacing:1px;color:var(--text3);text-transform:uppercase}
+.timer-box .t-val{font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--accent)}
+.timer-box.danger .t-val{color:var(--red);animation:blink 0.5s infinite}
+@keyframes blink{50%{opacity:0.5}}
+
+.game-body{
+  flex:1;overflow-y:auto;
+  padding:12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+.turn-indicator{
+  text-align:center;
+  padding:10px;
+  border-radius:var(--r);
+  font-family:var(--font-display);
+  font-size:12px;letter-spacing:2px;
+  font-weight:700;
+  border:1px solid;
+}
+.turn-indicator.your-turn{
+  background:rgba(0,255,159,0.08);
+  border-color:var(--green);
+  color:var(--green);
+  box-shadow:0 0 16px rgba(0,255,159,0.1);
+  animation:glow-green 2s infinite;
+}
+.turn-indicator.their-turn{
+  background:rgba(255,59,92,0.08);
+  border-color:var(--red);
+  color:var(--red);
+}
+@keyframes glow-green{0%,100%{box-shadow:0 0 16px rgba(0,255,159,0.1)}50%{box-shadow:0 0 24px rgba(0,255,159,0.3)}}
+
+.guess-input-area{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  padding:14px;
+}
+.guess-input-area .g-input-title{
+  font-size:10px;letter-spacing:2px;color:var(--text3);
+  text-transform:uppercase;margin-bottom:10px;
+}
+.guess-input-row{display:flex;gap:8px}
+.guess-input-row input{
+  flex:1;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  color:var(--text);
+  font-family:var(--font-mono);
+  font-size:18px;
+  padding:10px 14px;
+  outline:none;
+  letter-spacing:4px;
+  text-align:center;
+  transition:border-color var(--transition);
+}
+.guess-input-row input:focus{border-color:var(--accent)}
+.guess-input-row input:disabled{opacity:0.4}
+.submit-btn{
+  background:linear-gradient(135deg,#004a7a,#0077bb);
+  border:1px solid var(--accent2);
+  color:var(--accent);
+  font-family:var(--font-display);
+  font-size:11px;letter-spacing:1px;
+  padding:10px 16px;
+  border-radius:var(--r);
+  cursor:pointer;
+  transition:all var(--transition);
+  white-space:nowrap;
+}
+.submit-btn:hover:not(:disabled){background:linear-gradient(135deg,#0066aa,#0099dd);box-shadow:var(--glow)}
+.submit-btn:disabled{opacity:0.4;cursor:not-allowed}
+
+.guesses-section{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--r2);
+  overflow:hidden;
+}
+.guesses-tabs{display:flex;border-bottom:1px solid var(--border)}
+.guesses-tab{
+  flex:1;padding:10px;text-align:center;
+  font-family:var(--font-display);font-size:10px;letter-spacing:1px;
+  color:var(--text3);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all var(--transition);
+}
+.guesses-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.guesses-tab-content{display:none;padding:10px}
+.guesses-tab-content.active{display:block}
+
+.guess-row{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 0;
+  border-bottom:1px solid rgba(26,58,110,0.3);
+}
+.guess-row:last-child{border-bottom:none}
+.guess-num{font-family:var(--font-mono);font-size:14px;letter-spacing:3px;color:var(--text);min-width:80px}
+.guess-fb{
+  display:flex;gap:6px;margin-left:auto;
+}
+.fb-item{
+  display:flex;align-items:center;gap:3px;
+  background:var(--bg2);
+  border-radius:4px;padding:3px 7px;
+  font-size:11px;
+}
+.fb-item .fb-val{font-family:var(--font-display);font-size:13px;font-weight:700}
+.fb-item.digits .fb-val{color:var(--gold)}
+.fb-item.positions .fb-val{color:var(--green)}
+.fb-item .fb-lbl{font-size:9px;color:var(--text3);letter-spacing:0.5px}
+
+.game-meta-bar{
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.meta-chip{
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:4px 10px;
+  font-size:10px;color:var(--text2);
+  letter-spacing:0.5px;
+}
+.meta-chip strong{color:var(--accent);font-family:var(--font-display)}
+
+/* ═══════════════════════════════════════════════
+   SCREEN: RESULT
+═══════════════════════════════════════════════ */
+#screen-result{
+  justify-content:center;
+  background:radial-gradient(ellipse at 50% 30%, rgba(240,165,0,0.06) 0%, transparent 60%);
+}
+.result-card{
+  background:var(--panel);
+  border-radius:var(--r2);
+  padding:32px 24px;
+  text-align:center;
+  max-width:400px;width:100%;
+  position:relative;overflow:hidden;
+}
+.result-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.result-trophy{font-size:64px;margin-bottom:12px;animation:bounce 1s ease}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.result-label{
+  font-family:var(--font-mono);font-size:11px;letter-spacing:3px;
+  color:var(--text3);text-transform:uppercase;
+}
+.result-winner{
+  font-family:var(--font-display);font-size:28px;font-weight:900;
+  color:var(--gold);margin:8px 0;
+  text-shadow:0 0 20px rgba(240,165,0,0.5);
+}
+.result-reason{font-size:13px;color:var(--text2);margin-bottom:20px}
+.result-reveal{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:12px;margin-bottom:20px;
+  text-align:left;
+}
+.result-reveal .r-title{font-size:10px;letter-spacing:1px;color:var(--text3);margin-bottom:6px}
+.result-reveal .r-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.result-reveal .r-label{font-size:12px;color:var(--text2)}
+.result-reveal .r-val{font-family:var(--font-mono);font-size:14px;color:var(--accent);letter-spacing:2px}
+
+/* ═══════════════════════════════════════════════
+   ERROR / MSG
+═══════════════════════════════════════════════ */
+.msg{
+  padding:10px 14px;
+  border-radius:var(--r);
+  font-size:12px;
+  margin-bottom:12px;
+  display:none;
+}
+.msg.show{display:block}
+.msg.error{background:rgba(255,59,92,0.1);border:1px solid var(--red);color:var(--red)}
+.msg.success{background:rgba(0,255,159,0.1);border:1px solid var(--green);color:var(--green)}
+.msg.info{background:rgba(0,212,255,0.1);border:1px solid var(--accent);color:var(--accent)}
+
+/* ═══════════════════════════════════════════════
+   SCROLLBAR
+═══════════════════════════════════════════════ */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* ═══════════════════════════════════════════════
+   ADMIN PANEL
+═══════════════════════════════════════════════ */
+.admin-toggle{
+  font-size:10px;color:var(--text3);
+  text-decoration:underline;cursor:pointer;
+  display:block;text-align:center;margin-top:8px;
+}
+.admin-panel{
+  display:none;
+  margin-top:12px;
+  padding:14px;
+  background:rgba(139,92,246,0.05);
+  border:1px solid rgba(139,92,246,0.2);
+  border-radius:var(--r);
+}
+.admin-panel.show{display:block}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════ */
+@media(max-width:380px){
+  .digit-select{grid-template-columns:repeat(5,1fr);gap:4px}
+  .digit-option{padding:10px 2px;font-size:14px}
+  .menu-grid{gap:8px}
+}
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #94a3b8;
+  padding: 18px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  opacity: 0.8;
+}
+
+.footer strong {
+  color: #38bdf8;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ════════════════════════════════════════════
+     SCREEN: LOGIN / REGISTER
+════════════════════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div style="width:100%;max-width:400px;margin:auto">
+    <div class="hero">
+      <div class="game-title">
+        <span class="label">Online Multiplayer</span>
+        <div class="name" id="heroGameName">DUEL DIGIT </div>
+        <div class="tagline">Crack the Code. Beat the Clock.</div>
+      </div>
+      <div class="hero-decoration"></div>
+    </div>
+
+    <div class="card">
+      <div class="tab-row">
+        <button class="tab-btn active" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" onclick="switchTab('register')">Register</button>
+      </div>
+
+      <div id="tab-login">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="loginUser" placeholder="Enter username" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="loginPass" placeholder="Enter password" autocomplete="current-password"/>
+        </div>
+        <div class="msg" id="loginMsg"></div>
+        <button class="btn btn-primary" onclick="doLogin()">⚡ Login</button>
+      </div>
+
+      <div id="tab-register" style="display:none">
+        <div class="field">
+          <label>Username</label>
+          <input type="text" id="regUser" placeholder="Choose username" autocomplete="username"/>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input type="password" id="regPass" placeholder="Choose password" autocomplete="new-password"/>
+        </div>
+        <div class="msg" id="regMsg"></div>
+        <button class="btn btn-primary" onclick="doRegister()">🎮 Create Account</button>
+      </div>
+    </div>
+
+    <!-- Admin: set game name -->
+    <span class="admin-toggle" onclick="toggleAdmin()">⚙ Admin: Set Game Name</span>
+    <div class="admin-panel" id="adminPanel">
+      <div class="field">
+        <label>New Game Name</label>
+        <input type="text" id="adminGameName" placeholder="e.g. CIPHER WARS"/>
+      </div>
+      <div class="field">
+        <label>Admin Key</label>
+        <input type="password" id="adminKey" placeholder="Admin password"/>
+      </div>
+      <div class="msg" id="adminMsg"></div>
+      <button class="btn btn-ghost btn-sm" onclick="setGameName()">Update Name</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: HOME
+════════════════════════════════════════════ -->
+<div id="screen-home" class="screen">
+  <div class="topbar">
+    <div class="topbar-title" id="topbarName">DUEL DIGIT</div>
+    <div class="topbar-user">
+      <div class="online-dot"></div>
+      <div class="user-badge" id="topbarUser">—</div>
+    </div>
+  </div>
+
+  <div class="home-content">
+    <div class="home-hero">
+      <div class="game-title" style="margin-bottom:4px">
+        <span class="label">Welcome Back</span>
+        <div class="name" id="homeGameName" style="font-size:clamp(20px,6vw,36px)">DIGIT DUEL</div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);letter-spacing:1px">2-Player Online Number Guessing</div>
+    </div>
+
+    <div class="menu-grid">
+      <div class="menu-card" onclick="showScreen('create-room')">
+        <span class="icon">🏠</span>
+        <div class="label">Create Room</div>
+        <div class="sublabel">Host a match</div>
+      </div>
+      <div class="menu-card" onclick="showScreen('join-room')">
+        <span class="icon">🔗</span>
+        <div class="label">Join Room</div>
+        <div class="sublabel">Enter by ID</div>
+      </div>
+      <div class="menu-card" onclick="showScreen('friends')">
+        <span class="icon">👥</span>
+        <div class="label">Friends</div>
+        <div class="sublabel">Online list</div>
+      </div>
+      <div class="menu-card" onclick="doLogout()">
+        <span class="icon">🚪</span>
+        <div class="label">Logout</div>
+        <div class="sublabel">Sign out</div>
+      </div>
+    </div>
+
+    <div class="stat-bar">
+      <div class="stat-item">
+        <div class="stat-val" id="statUid">—</div>
+        <div class="stat-lbl">Your UID</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: CREATE ROOM
+════════════════════════════════════════════ -->
+<div id="screen-create-room" class="screen">
+  <div style="width:100%;max-width:440px;margin:auto;padding-top:16px">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <div class="card">
+      <div class="card-title">🏠 Create Room</div>
+      <div class="field">
+        <label>Room ID</label>
+        <input type="text" id="createRoomId" placeholder="e.g. BATTLE01" maxlength="12" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Room Password</label>
+        <input type="password" id="createRoomPass" placeholder="Set a password" autocomplete="new-password"/>
+      </div>
+      <div class="field">
+        <label>Secret Digits</label>
+        <div class="digit-select" id="digitSelect">
+          <div class="digit-option" data-d="2" onclick="selectDigit(2)">2<div class="digit-label">3 min</div></div>
+          <div class="digit-option" data-d="3" onclick="selectDigit(3)">3<div class="digit-label">5 min</div></div>
+          <div class="digit-option selected" data-d="4" onclick="selectDigit(4)">4<div class="digit-label">7 min</div></div>
+          <div class="digit-option" data-d="5" onclick="selectDigit(5)">5<div class="digit-label">9 min</div></div>
+          <div class="digit-option" data-d="6" onclick="selectDigit(6)">6<div class="digit-label">11 min</div></div>
+        </div>
+      </div>
+
+      <div id="repeatOption" style="display:none">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Allow one repeated digit</div>
+            <div class="toggle-desc">One digit may appear exactly twice in the secret number</div>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="allowRepeat"/>
+            <span class="toggle-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="msg" id="createMsg" style="margin-top:12px"></div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="doCreateRoom()">⚡ Create Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: JOIN ROOM
+════════════════════════════════════════════ -->
+<div id="screen-join-room" class="screen">
+  <div style="width:100%;max-width:440px;margin:auto;padding-top:16px">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <div class="card">
+      <div class="card-title">🔗 Join Room</div>
+      <div class="field">
+        <label>Room ID</label>
+        <input type="text" id="joinRoomId" placeholder="Enter Room ID" maxlength="12" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Room Password</label>
+        <input type="password" id="joinRoomPass" placeholder="Enter password" autocomplete="current-password"/>
+      </div>
+      <div class="msg" id="joinMsg"></div>
+      <button class="btn btn-accent" onclick="doJoinRoom()">🔗 Join Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: FRIENDS
+════════════════════════════════════════════ -->
+<div id="screen-friends" class="screen">
+  <div style="width:100%;max-width:440px;margin:auto;padding-top:16px">
+    <button class="back-btn" onclick="showScreen('home')">← Back</button>
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">👥 Friends</div>
+      <div class="search-row">
+        <input type="text" id="friendSearch" placeholder="Search username..." style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--font-mono);font-size:14px;padding:10px 12px;outline:none"/>
+        <button class="btn btn-ghost" style="width:auto;padding:10px 16px" onclick="searchUser()">🔍</button>
+      </div>
+      <div id="searchResults" class="friend-list" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px" id="reqCard">
+      <div class="card-title">📬 Requests</div>
+      <div id="reqList" class="friend-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🟢 Friends List</div>
+      <div id="friendList" class="friend-list">
+        <div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No friends yet. Search for players!</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: LOBBY
+════════════════════════════════════════════ -->
+<div id="screen-lobby" class="screen">
+  <div style="width:100%;max-width:440px;margin:auto;padding-top:16px">
+    <div class="lobby-status">
+      <div style="font-size:10px;letter-spacing:2px;color:var(--text3);text-transform:uppercase">Room ID</div>
+      <div class="lobby-room-id" id="lobbyRoomId">—</div>
+      <div id="lobbyWaiting" class="lobby-waiting">
+        Waiting for opponent
+        <div class="dots"><span></span><span></span><span></span></div>
+      </div>
+      <div id="lobbyBothJoined" style="display:none;color:var(--green);margin-top:8px;font-size:13px">
+        ✅ Both players connected!
+      </div>
+    </div>
+
+    <div class="player-slots">
+      <div class="player-slot filled">
+        <div class="slot-icon">👑</div>
+        <div class="slot-role">Host</div>
+        <div class="slot-name" id="lobbyHostName">—</div>
+      </div>
+      <div class="player-slot" id="lobbyOpponentSlot">
+        <div class="slot-icon">⏳</div>
+        <div class="slot-role">Opponent</div>
+        <div class="slot-name empty" id="lobbyOpponentName">Waiting...</div>
+      </div>
+    </div>
+
+    <div class="room-info-grid">
+      <div class="room-info-item">
+        <div class="lbl">Digits</div>
+        <div class="val" id="lobbyDigits">—</div>
+      </div>
+      <div class="room-info-item">
+        <div class="lbl">Game Time</div>
+        <div class="val" id="lobbyTime">—</div>
+      </div>
+      <div class="room-info-item" id="lobbyRepeatItem" style="display:none">
+        <div class="lbl">Repeat Rule</div>
+        <div class="val" id="lobbyRepeat">OFF</div>
+      </div>
+    </div>
+
+    <!-- Invite friends (host only) -->
+    <div id="inviteFriendSection" style="display:none">
+      <div class="card">
+        <div class="card-title">📨 Invite Friend</div>
+        <div id="inviteFriendList" class="friend-list"></div>
+      </div>
+    </div>
+
+    <button class="btn btn-danger" onclick="leaveRoom()" style="margin-top:8px">🚪 Leave Room</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: SECRET ENTRY
+════════════════════════════════════════════ -->
+<div id="screen-secret" class="screen">
+  <div style="width:100%;max-width:400px;margin:auto;padding-top:16px">
+    <div class="card">
+      <div class="card-title">🔒 Set Your Secret Number</div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
+        Enter your <strong id="secretDigitCount" style="color:var(--accent)">?</strong>-digit secret number. 
+        Your opponent will try to guess it. Keep it secret!
+      </p>
+
+      <div class="digit-slots" id="digitSlots"></div>
+
+      <div class="field">
+        <label>Your Secret Number</label>
+        <div class="secret-input-wrap">
+          <input type="password" id="secretInput" placeholder="••••" maxlength="6"
+            oninput="onSecretInput(this.value)" autocomplete="off"
+            style="letter-spacing:6px;text-align:center;font-size:20px"/>
+          <button class="toggle-vis" onclick="toggleSecretVis()">👁</button>
+        </div>
+      </div>
+
+      <div class="secret-hint" id="secretHint">
+        No repeated digits allowed.
+      </div>
+
+      <div class="msg" id="secretMsg" style="margin-top:8px"></div>
+      <button class="btn btn-primary" style="margin-top:12px" onclick="submitSecret()">🔒 Lock In Secret</button>
+
+      <div id="waitingOpponentSecret" style="display:none;margin-top:16px;text-align:center">
+        <div style="color:var(--green);font-size:13px">✅ Secret locked! Waiting for opponent...</div>
+        <div class="dots" style="margin-top:8px"><span></span><span></span><span></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: GAME
+════════════════════════════════════════════ -->
+<div id="screen-game" class="screen">
+  <div class="game-topbar">
+    <div class="g-title" id="gameTopName">DIGIT DUEL</div>
+    <div class="timers">
+      <div class="timer-box" id="totalTimerBox">
+        <div class="t-lbl">Game</div>
+        <div class="t-val" id="totalTimerVal">—</div>
+      </div>
+      <div class="timer-box" id="turnTimerBox">
+        <div class="t-lbl">Turn</div>
+        <div class="t-val" id="turnTimerVal">15</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-body">
+    <div class="game-meta-bar" id="gameMeta"></div>
+
+    <div class="turn-indicator their-turn" id="turnIndicator">Waiting...</div>
+
+    <div class="guess-input-area">
+      <div class="g-input-title">Your Guess</div>
+      <div class="guess-input-row">
+        <input type="text" id="guessInput" placeholder="—" maxlength="6"
+          inputmode="numeric" autocomplete="off"
+          onkeydown="if(event.key==='Enter')submitGuess()"/>
+        <button class="submit-btn" id="submitGuessBtn" onclick="submitGuess()" disabled>SEND</button>
+      </div>
+      <div class="msg" id="guessMsg" style="margin-top:8px"></div>
+    </div>
+
+    <div class="guesses-section">
+      <div class="guesses-tabs">
+        <div class="guesses-tab active" onclick="switchGuessTab('my')" id="gTab-my">My Guesses</div>
+        <div class="guesses-tab" onclick="switchGuessTab('opp')" id="gTab-opp">Their Guesses</div>
+      </div>
+      <div class="guesses-tab-content active" id="gContent-my">
+        <div id="myGuessList" style="color:var(--text3);font-size:12px;text-align:center;padding:12px">No guesses yet</div>
+      </div>
+      <div class="guesses-tab-content" id="gContent-opp">
+        <div id="oppGuessList" style="color:var(--text3);font-size:12px;text-align:center;padding:12px">No guesses yet</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════
+     SCREEN: RESULT
+════════════════════════════════════════════ -->
+<div id="screen-result" class="screen">
+  <div class="result-card">
+    <div class="result-trophy" id="resultTrophy">🏆</div>
+    <div class="result-label">Game Over</div>
+    <div class="result-winner" id="resultWinner">—</div>
+    <div class="result-reason" id="resultReason">—</div>
+
+    <div class="result-reveal" id="resultReveal">
+      <div class="r-title">SECRET NUMBERS REVEALED</div>
+      <div class="r-row">
+        <div class="r-label" id="revealHostLabel">Host</div>
+        <div class="r-val" id="revealHostSecret">—</div>
+      </div>
+      <div class="r-row">
+        <div class="r-label" id="revealOppLabel">Opponent</div>
+        <div class="r-val" id="revealOppSecret">—</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" onclick="showScreen('home')">🏠 Back to Home</button>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notifications"></div>
+
+</div><!-- /#app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════════════════
+const API = window.location.origin;
+
+// ═══════════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════════
+let state = {
+  token: localStorage.getItem('token') || null,
+  uid: localStorage.getItem('uid') || null,
+  username: localStorage.getItem('username') || null,
+  socket: null,
+  gameName: 'DIGIT DUEL',
+  room: null,        // current room data from server
+  myRole: null,      // 'host' | 'opponent'
+  selectedDigits: 4,
+  pendingInvite: null  // { fromUid, fromUsername, roomId }
+};
+
+// ═══════════════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════════════
+function $(id){ return document.getElementById(id) }
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(`screen-${name}`).classList.add('active');
+  if(name==='friends') loadFriends();
+}
+function setMsg(id,msg,type='error'){
+  const el=$(id);
+  el.textContent=msg;
+  el.className='msg show '+type;
+  if(msg) setTimeout(()=>{el.classList.remove('show')},4000);
+}
+function notify(msg,type='info',duration=4000,actions=null){
+  const n=document.createElement('div');
+  n.className=`notif ${type}`;
+  let html=`<div class="notif-title">${type.toUpperCase()}</div><div>${msg}</div>`;
+  if(actions){
+    html+=`<div class="notif-actions">`;
+    actions.forEach(a=>{
+      html+=`<button class="notif-btn ${a.cls}" onclick="(${a.fn})()">${a.label}</button>`;
+    });
+    html+=`</div>`;
+  }
+  n.innerHTML=html;
+  $('notifications').appendChild(n);
+  if(duration>0) setTimeout(()=>n.remove(),duration);
+  return n;
+}
+function fmt(seconds){
+  const m=Math.floor(seconds/60),s=seconds%60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+async function apiPost(path,body){
+  const r=await fetch(API+path,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(body)
+  });
+  return r.json();
+}
+async function apiGet(path){
+  const r=await fetch(API+path);
+  return r.json();
+}
+function updateAllGameNames(name){
+  state.gameName=name;
+  document.querySelectorAll('.name,[id$="GameName"],[id^="game"][id*="Name"]').forEach(el=>{
+    if(el.id&&(el.id.includes('Name')||el.id.includes('name'))||el.classList.contains('name')){
+      el.textContent=name;
+    }
+  });
+  $('pageTitle').textContent=name;
+  $('heroGameName').textContent=name;
+  $('homeGameName').textContent=name;
+  $('topbarName').textContent=name;
+  $('gameTopName').textContent=name;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════════
+async function init(){
+  // Load game name
+  try{
+    const d=await apiGet('/api/game-name');
+    updateAllGameNames(d.gameName);
+  }catch(e){}
+
+  if(state.token && state.uid && state.username){
+    setupSocket();
+    goHome();
+  }
+}
+
+function goHome(){
+  $('topbarUser').textContent=state.username;
+  $('statUid').textContent=state.uid.slice(0,8)+'…';
+  showScreen('home');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════════
+function switchTab(tab){
+  document.querySelectorAll('.tab-btn').forEach((b,i)=>b.classList.toggle('active',i===(tab==='login'?0:1)));
+  $('tab-login').style.display=tab==='login'?'block':'none';
+  $('tab-register').style.display=tab==='register'?'block':'none';
+}
+
+async function doLogin(){
+  const username=$('loginUser').value.trim();
+  const password=$('loginPass').value;
+  if(!username||!password){ setMsg('loginMsg','Enter username and password.'); return; }
+  const d=await apiPost('/api/login',{username,password});
+  if(d.error){ setMsg('loginMsg',d.error); return; }
+  saveAuth(d);
+  setupSocket();
+  goHome();
+}
+
+async function doRegister(){
+  const username=$('regUser').value.trim();
+  const password=$('regPass').value;
+  if(!username||!password){ setMsg('regMsg','Fill all fields.'); return; }
+  if(username.length<3){ setMsg('regMsg','Username must be at least 3 chars.'); return; }
+  if(password.length<4){ setMsg('regMsg','Password must be at least 4 chars.'); return; }
+  const d=await apiPost('/api/register',{username,password});
+  if(d.error){ setMsg('regMsg',d.error); return; }
+  saveAuth(d);
+  setupSocket();
+  goHome();
+}
+
+function saveAuth(d){
+  state.token=d.token; state.uid=d.uid; state.username=d.username;
+  localStorage.setItem('token',d.token);
+  localStorage.setItem('uid',d.uid);
+  localStorage.setItem('username',d.username);
+}
+
+function doLogout(){
+  if(state.socket) state.socket.disconnect();
+  localStorage.clear();
+  state={...state,token:null,uid:null,username:null,socket:null,room:null,myRole:null};
+  showScreen('login');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════════════
+function toggleAdmin(){$('adminPanel').classList.toggle('show')}
+async function setGameName(){
+  const name=$('adminGameName').value.trim();
+  const key=$('adminKey').value;
+  if(!name){ setMsg('adminMsg','Enter a name.'); return; }
+  const d=await apiPost('/api/game-name',{name,adminKey:key});
+  if(d.error){ setMsg('adminMsg',d.error); return; }
+  setMsg('adminMsg','Game name updated!','success');
+  updateAllGameNames(d.gameName);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SOCKET SETUP
+// ═══════════════════════════════════════════════════════════════
+function setupSocket(){
+  if(state.socket && state.socket.connected) return;
+  state.socket=io(API,{auth:{token:state.token}});
+  const s=state.socket;
+
+  s.on('connect',()=>console.log('[Socket] connected'));
+  s.on('disconnect',()=>console.log('[Socket] disconnected'));
+
+  s.on('gameName:updated',({gameName})=>updateAllGameNames(gameName));
+
+  s.on('room:error',({msg})=>{
+    notify(msg,'error');
+    // Also show in relevant msg boxes
+    ['createMsg','joinMsg'].forEach(id=>{
+      if($(`screen-${id.replace('Msg','-room')}`)) setMsg(id,msg);
+    });
+    setMsg('createMsg',msg);
+    setMsg('joinMsg',msg);
+  });
+
+  s.on('room:created',({roomId,digits,allowRepeat})=>{
+    state.myRole='host';
+    setupLobby(roomId,digits,allowRepeat);
+    showScreen('lobby');
+  });
+
+  s.on('room:joined',({roomId,digits,allowRepeat,hostUsername,opponentUsername,hostUid,opponentUid})=>{
+    state.myRole = state.uid===hostUid ? 'host' : 'opponent';
+    setupLobby(roomId,digits,allowRepeat);
+    showScreen('lobby');
+  });
+
+  s.on('room:proceedToJoin',({roomId})=>{
+    $('joinRoomId').value=roomId;
+    showScreen('join-room');
+    notify(`Invitation from friend! Room: ${roomId}. Enter the password to join.`,'info',6000);
+  });
+
+  s.on('room:inviteReceived',({fromUid,fromUsername,roomId})=>{
+    state.pendingInvite={fromUid,fromUsername,roomId};
+    const n=notify(`<strong>${fromUsername}</strong> invited you to Room: ${roomId}`,'invite',0,[
+      {label:'Accept',cls:'accept',fn:`acceptInvite`},
+      {label:'Decline',cls:'decline',fn:`declineInvite`}
+    ]);
+    n._inviteRoomId=roomId;
+    n._inviteFrom=fromUid;
+  });
+
+  s.on('room:inviteDeclined',({byUsername})=>{
+    notify(`${byUsername} declined your invitation.`,'error');
+  });
+
+  s.on('room:update',(room)=>{
+    state.room=room;
+    handleRoomUpdate(room);
+  });
+
+  s.on('room:turnSkipped',({skipped})=>{
+    notify(`${skipped==='host'?state.room.hostUsername:state.room.opponentUsername}'s turn was skipped (timeout).`,'info',2500);
+  });
+
+  s.on('room:tick',({totalRemaining,turnRemaining})=>{
+    if(state.room){
+      state.room.totalRemaining=totalRemaining;
+      state.room.turnRemaining=turnRemaining;
+      updateTimers(totalRemaining,turnRemaining);
+    }
+  });
+
+  s.on('game:secretAccepted',()=>{
+    $('waitingOpponentSecret').style.display='block';
+    $('secretInput').disabled=true;
+    document.querySelector('#screen-secret .btn-primary').disabled=true;
+  });
+
+  s.on('game:secretError',({msg})=>setMsg('secretMsg',msg));
+  s.on('game:guessError',({msg})=>setMsg('guessMsg',msg,'error'));
+
+  s.on('friend:online',({uid,username})=>{
+    notify(`${username} is now online.`,'success',3000);
+    refreshFriendItem(uid,true);
+  });
+  s.on('friend:offline',({uid,username})=>refreshFriendItem(uid,false));
+
+  s.on('friend:requestReceived',({uid,username})=>{
+    notify(`${username} sent you a friend request!`,'info',5000);
+    loadFriends();
+  });
+  s.on('friend:requestSent',({toUsername})=>notify(`Friend request sent to ${toUsername}.`,'success',3000));
+  s.on('friend:accepted',({uid,username,online})=>{
+    notify(`You and ${username} are now friends!`,'success',3000);
+    loadFriends();
+  });
+}
+
+function acceptInvite(){
+  if(!state.pendingInvite) return;
+  state.socket.emit('room:inviteAccept',{roomId:state.pendingInvite.roomId});
+  document.querySelectorAll('.notif.invite').forEach(n=>n.remove());
+}
+function declineInvite(){
+  if(!state.pendingInvite) return;
+  state.socket.emit('room:inviteDecline',{roomId:state.pendingInvite.roomId,fromUid:state.pendingInvite.fromUid});
+  state.pendingInvite=null;
+  document.querySelectorAll('.notif.invite').forEach(n=>n.remove());
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  ROOM HANDLING
+// ═══════════════════════════════════════════════════════════════
+function selectDigit(d){
+  state.selectedDigits=d;
+  document.querySelectorAll('.digit-option').forEach(el=>el.classList.toggle('selected',Number(el.dataset.d)===d));
+  $('repeatOption').style.display = d===6 ? 'block' : 'none';
+}
+
+function doCreateRoom(){
+  const roomId=$('createRoomId').value.trim();
+  const password=$('createRoomPass').value;
+  const digits=state.selectedDigits;
+  const allowRepeat=$('allowRepeat').checked;
+  if(!roomId){ setMsg('createMsg','Enter a room ID.'); return; }
+  if(!password){ setMsg('createMsg','Enter a room password.'); return; }
+  if(!/^[a-zA-Z0-9]+$/.test(roomId)){ setMsg('createMsg','Room ID: letters and numbers only.'); return; }
+  state.socket.emit('room:create',{roomId,password,digits,allowRepeat});
+}
+
+function doJoinRoom(){
+  const roomId=$('joinRoomId').value.trim();
+  const password=$('joinRoomPass').value;
+  if(!roomId){ setMsg('joinMsg','Enter room ID.'); return; }
+  if(!password){ setMsg('joinMsg','Enter password.'); return; }
+  state.socket.emit('room:join',{roomId,password});
+}
+
+function setupLobby(roomId,digits,allowRepeat){
+  $('lobbyRoomId').textContent=roomId;
+  $('lobbyDigits').textContent=digits;
+  const mins=[0,0,3,5,7,9,11][digits];
+  $('lobbyTime').textContent=`${mins} min`;
+  if(digits===6){
+    $('lobbyRepeatItem').style.display='block';
+    $('lobbyRepeat').textContent=allowRepeat?'ON':'OFF';
+  } else {
+    $('lobbyRepeatItem').style.display='none';
+  }
+  if(state.myRole==='host'){
+    $('inviteFriendSection').style.display='block';
+    loadLobbyFriends(roomId);
+  } else {
+    $('inviteFriendSection').style.display='none';
+  }
+}
+
+function handleRoomUpdate(room){
+  const isHost=state.uid===room.hostUid;
+  state.myRole=isHost?'host':'opponent';
+
+  // Lobby updates
+  $('lobbyHostName').textContent=room.hostUsername||'—';
+  if(room.opponentUsername){
+    $('lobbyOpponentName').textContent=room.opponentUsername;
+    $('lobbyOpponentName').classList.remove('empty');
+    $('lobbyOpponentSlot').classList.add('filled');
+    $('lobbyWaiting').style.display='none';
+    $('lobbyBothJoined').style.display='block';
+  }
+
+  if(room.state==='secret' && document.querySelector('#screen-lobby.active')){
+    setupSecretScreen(room);
+    showScreen('secret');
+  }
+  if(room.state==='playing'){
+    if(!document.querySelector('#screen-game.active')){
+      showScreen('game');
+      renderGameMeta(room);
+    }
+    updateGameScreen(room);
+  }
+  if(room.state==='ended'){
+    showResult(room);
+  }
+}
+
+function leaveRoom(){
+  if(state.socket) state.socket.emit('room:leave');
+  state.room=null; state.myRole=null;
+  showScreen('home');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SECRET NUMBER
+// ═══════════════════════════════════════════════════════════════
+function setupSecretScreen(room){
+  const d=room.digits;
+  $('secretDigitCount').textContent=d;
+  $('secretInput').maxLength=d;
+  $('secretInput').placeholder='•'.repeat(d);
+  $('secretInput').value='';
+  $('secretInput').disabled=false;
+  $('waitingOpponentSecret').style.display='none';
+  document.querySelector('#screen-secret .btn-primary').disabled=false;
+  setMsg('secretMsg','');
+
+  // hint
+  if(d===6 && room.allowRepeat){
+    $('secretHint').textContent='One digit may repeat exactly twice. No other digits may repeat.';
+  } else {
+    $('secretHint').textContent='No repeated digits allowed.';
+  }
+
+  // digit slots
+  const slots=$('digitSlots');
+  slots.innerHTML='';
+  for(let i=0;i<d;i++){
+    const s=document.createElement('div');
+    s.className='digit-slot';s.id=`dslot-${i}`;s.textContent='_';
+    slots.appendChild(s);
+  }
+}
+
+function onSecretInput(val){
+  const d=state.room?state.room.digits:state.selectedDigits;
+  for(let i=0;i<d;i++){
+    const slot=$(`dslot-${i}`);
+    if(!slot) continue;
+    if(i<val.length){
+      slot.textContent='*';slot.classList.add('filled');
+    } else {
+      slot.textContent='_';slot.classList.remove('filled');
+    }
+  }
+}
+
+let secretVisible=false;
+function toggleSecretVis(){
+  secretVisible=!secretVisible;
+  $('secretInput').type=secretVisible?'text':'password';
+}
+
+function submitSecret(){
+  const secret=$('secretInput').value.trim();
+  if(!secret){ setMsg('secretMsg','Enter your secret number.'); return; }
+  setMsg('secretMsg','');
+  state.socket.emit('game:setSecret',{secret});
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  GAME SCREEN
+// ═══════════════════════════════════════════════════════════════
+function renderGameMeta(room){
+  const isHost=state.uid===room.hostUid;
+  let meta=`
+    <div class="meta-chip">Room: <strong>${room.id}</strong></div>
+    <div class="meta-chip">Role: <strong>${isHost?'HOST':'OPPONENT'}</strong></div>
+    <div class="meta-chip">Digits: <strong>${room.digits}</strong></div>
+  `;
+  if(room.digits===6){
+    meta+=`<div class="meta-chip">Repeat: <strong>${room.allowRepeat?'ON':'OFF'}</strong></div>`;
+  }
+  $('gameMeta').innerHTML=meta;
+}
+
+function updateGameScreen(room){
+  const isHost=state.uid===room.hostUid;
+  const myRole=isHost?'host':'opponent';
+  const isMyTurn=room.currentTurn===myRole;
+
+  // Turn indicator
+  const ti=$('turnIndicator');
+  if(isMyTurn){
+    ti.className='turn-indicator your-turn';
+    ti.textContent='⚡ YOUR TURN — Guess Now!';
+  } else {
+    const oppName=isHost?room.opponentUsername:room.hostUsername;
+    ti.className='turn-indicator their-turn';
+    ti.textContent=`⏳ ${oppName}'s Turn`;
+  }
+
+  // Guess input
+  $('guessInput').disabled=!isMyTurn;
+  $('submitGuessBtn').disabled=!isMyTurn;
+  if(isMyTurn) $('guessInput').focus();
+
+  // Timers
+  updateTimers(room.totalRemaining,room.turnRemaining);
+
+  // Guesses
+  renderGuesses(room,isHost);
+}
+
+function updateTimers(total,turn){
+  $('totalTimerVal').textContent=fmt(total||0);
+  $('turnTimerVal').textContent=turn||'—';
+  $('turnTimerBox').classList.toggle('danger',(turn||15)<=5);
+  $('totalTimerBox').classList.toggle('danger',(total||999)<=60);
+}
+
+function renderGuesses(room,isHost){
+  const myGuesses=isHost?room.hostGuesses:room.opponentGuesses;
+  const oppGuesses=isHost?room.opponentGuesses:room.hostGuesses;
+
+  $('myGuessList').innerHTML=myGuesses.length ? renderGuessRows(myGuesses) : '<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px">No guesses yet</div>';
+  $('oppGuessList').innerHTML=oppGuesses.length ? renderGuessRows(oppGuesses) : '<div style="color:var(--text3);font-size:12px;text-align:center;padding:12px">No guesses yet</div>';
+}
+
+function renderGuessRows(guesses){
+  return guesses.map((g,i)=>`
+    <div class="guess-row">
+      <div style="font-size:10px;color:var(--text3);min-width:18px">#${i+1}</div>
+      <div class="guess-num">${g.guess}</div>
+      <div class="guess-fb">
+        <div class="fb-item digits">
+          <span class="fb-val">${g.correctDigits}</span>
+          <span class="fb-lbl"> digit${g.correctDigits!==1?'s':''}</span>
+        </div>
+        <div class="fb-item positions">
+          <span class="fb-val">${g.correctPositions}</span>
+          <span class="fb-lbl"> pos</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function switchGuessTab(tab){
+  ['my','opp'].forEach(t=>{
+    $(`gTab-${t}`).classList.toggle('active',t===tab);
+    $(`gContent-${t}`).classList.toggle('active',t===tab);
+  });
+}
+
+function submitGuess(){
+  const guess=$('guessInput').value.trim();
+  if(!guess){ setMsg('guessMsg','Enter a guess.'); return; }
+  setMsg('guessMsg','');
+  state.socket.emit('game:guess',{guess});
+  $('guessInput').value='';
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RESULT
+// ═══════════════════════════════════════════════════════════════
+function showResult(room){
+  const isWinner=room.winner===state.username;
+  $('resultTrophy').textContent=isWinner?'🏆':'💀';
+  $('resultWinner').textContent=room.winner==='draw'?'DRAW!':(isWinner?'YOU WIN!':room.winner+' WINS!');
+  $('resultWinner').style.color=room.winner==='draw'?'var(--accent)':isWinner?'var(--gold)':'var(--red)';
+  $('resultReason').textContent=room.winReason||'';
+
+  const isHost=state.uid===room.hostUid;
+  $('revealHostLabel').textContent=`${room.hostUsername} (Host)`;
+  $('revealOppLabel').textContent=`${room.opponentUsername} (Opponent)`;
+  // Only reveal after game ends (server sends room:update with ended state)
+  // For privacy, we don't have opponent's secret on client — server should reveal
+  $('revealHostSecret').textContent=isHost ? (room.hostReveal||'—') : (room.hostReveal||'—');
+  $('revealOppSecret').textContent=room.opponentReveal||'—';
+
+  showScreen('result');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  FRIENDS
+// ═══════════════════════════════════════════════════════════════
+async function loadFriends(){
+  if(!state.uid) return;
+  const data=await apiGet(`/api/friends/${state.uid}`);
+  renderFriendList(data.friends||[]);
+  renderRequests(data.requests||[]);
+}
+
+function renderFriendList(friends){
+  const el=$('friendList');
+  if(!friends.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:13px;text-align:center;padding:20px">No friends yet.</div>';
+    return;
+  }
+  el.innerHTML=friends.map(f=>`
+    <div class="friend-item" id="fitem-${f.uid}">
+      <div class="friend-avatar">${f.username[0].toUpperCase()}</div>
+      <div class="friend-info">
+        <div class="friend-name">${f.username}</div>
+        <div class="friend-status ${f.online?'online':'offline'}">${f.online?'● Online':'○ Offline'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderRequests(reqs){
+  const el=$('reqList');
+  $('reqCard').style.display=reqs.length?'block':'none';
+  el.innerHTML=reqs.map(r=>`
+    <div class="req-item">
+      <div class="friend-avatar">${r.username[0].toUpperCase()}</div>
+      <div class="req-info">
+        <div class="req-name">${r.username}</div>
+        <div class="req-sub">Wants to be friends</div>
+      </div>
+      <div class="req-actions">
+        <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:var(--green)" onclick="acceptReq('${r.uid}')">✓</button>
+        <button class="btn btn-ghost btn-sm" onclick="rejectReq('${r.uid}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function refreshFriendItem(uid,online){
+  const el=$(`fitem-${uid}`);
+  if(!el) return;
+  const st=el.querySelector('.friend-status');
+  if(st){
+    st.className=`friend-status ${online?'online':'offline'}`;
+    st.textContent=online?'● Online':'○ Offline';
+  }
+}
+
+async function searchUser(){
+  const q=$('friendSearch').value.trim();
+  if(!q){ $('searchResults').innerHTML=''; return; }
+  const users=await apiGet(`/api/search/${q}`);
+  $('searchResults').innerHTML=users.filter(u=>u.uid!==state.uid).map(u=>`
+    <div class="friend-item">
+      <div class="friend-avatar">${u.username[0].toUpperCase()}</div>
+      <div class="friend-info">
+        <div class="friend-name">${u.username}</div>
+        <div class="friend-status ${u.online?'online':'offline'}">${u.online?'● Online':'○ Offline'}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:auto" onclick="sendReq('${u.uid}')">+ Add</button>
+    </div>
+  `).join('');
+}
+
+function sendReq(toUid){ state.socket.emit('friend:request',{toUid}) }
+function acceptReq(fromUid){ state.socket.emit('friend:accept',{fromUid}); loadFriends(); }
+function rejectReq(fromUid){ state.socket.emit('friend:reject',{fromUid}); loadFriends(); }
+
+async function loadLobbyFriends(roomId){
+  if(!state.uid) return;
+  const data=await apiGet(`/api/friends/${state.uid}`);
+  const onlineFriends=(data.friends||[]).filter(f=>f.online);
+  const el=$('inviteFriendList');
+  if(!onlineFriends.length){
+    el.innerHTML='<div style="color:var(--text3);font-size:12px">No friends online to invite.</div>';
+    return;
+  }
+  el.innerHTML=onlineFriends.map(f=>`
+    <div class="friend-item">
+      <div class="friend-avatar">${f.username[0].toUpperCase()}</div>
+      <div class="friend-info">
+        <div class="friend-name">${f.username}</div>
+        <div class="friend-status online">● Online</div>
+      </div>
+      <button class="btn btn-gold btn-sm" style="width:auto" onclick="inviteFriend('${f.uid}','${roomId}')">Invite</button>
+    </div>
+  `).join('');
+}
+
+function inviteFriend(toUid,roomId){
+  state.socket.emit('room:invite',{toUid,roomId});
+  notify('Invitation sent!','success',3000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  START
+// ═══════════════════════════════════════════════════════════════
+init();
+</script>
+<div class="footer">
+  Developed by <strong>Yashwant</strong> & <strong>Dharshan</strong>
+</div>
+</body>
+</html>
