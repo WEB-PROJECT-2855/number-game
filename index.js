@@ -150,7 +150,7 @@ function endGame(room, winner, winReason) {
 function startTurnTimer(room) {
   if (room.turnTimer) clearInterval(room.turnTimer);
 
-  room.turnRemaining = 15;
+  room.turnRemaining = 25;
   broadcastRoom(room);
 
   room.turnTimer = setInterval(() => {
