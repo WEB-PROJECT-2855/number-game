@@ -150,7 +150,7 @@ function endGame(room, winner, winReason) {
 function startTurnTimer(room) {
   if (room.turnTimer) clearInterval(room.turnTimer);
 
-  room.turnRemaining = 15;
+  room.turnRemaining = 30;
   broadcastRoom(room);
 
   room.turnTimer = setInterval(() => {
@@ -410,9 +410,9 @@ io.on('connection', async (socket) => {
       hostGuesses: [],
       opponentGuesses: [],
       totalSeconds: getTotalSeconds(Number(digits)),
-      turnSeconds: 15,
+      turnSeconds: 30,
       totalRemaining: 0,
-      turnRemaining: 15,
+      turnRemaining: 30,
       totalTimer: null,
       turnTimer: null,
       winner: null,
