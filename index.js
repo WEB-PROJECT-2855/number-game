@@ -150,7 +150,7 @@ function endGame(room, winner, winReason) {
 function startTurnTimer(room) {
   if (room.turnTimer) clearInterval(room.turnTimer);
 
-  room.turnRemaining = 25;
+  room.turnRemaining = 15;
   broadcastRoom(room);
 
   room.turnTimer = setInterval(() => {
@@ -254,7 +254,7 @@ app.post('/api/game-name', async (req, res) => {
   const { name, adminKey } = req.body;
 
   if (adminKey !== (process.env.ADMIN_KEY || 'admin2024')) {
-    return res.status(403).json({ error: 'Unauthorised.' });
+    return res.status(403).json({ error: 'Unauthorized.' });
   }
 
   const settings = await GameSettings.findOneAndUpdate(
